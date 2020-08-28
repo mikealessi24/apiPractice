@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.26.0/ramda.js"></script>
+    <script src="index.js"></script>
+    <link type="text/css" rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SC Breweries</title>
+  </head>
+  <body>
+    <div class="nav">
+      <div class="search">
+        <input type="text" id="state" placeholder="Enter a state..." />
+        <button onclick="getBreweries()">Search</button>
+      </div>
+      <div class="filter">
+        <input type="text" id="city" placeholder="Enter a city..." />
+        <button onclick="filterByCity()">Filter</button>
+
+        <select id="brewType" name="brewType">
+          <option>Micro</option>
+          <option>Brewpub</option>
+          <option>Planning</option>
+          <option>Contract</option>
+        </select>
+        <button onclick="filterByBrewType()">Filter</button>
+        <button onclick="filterBoth()">Filter Both</button>
+      </div>
+    </div>
+    <div class="brew" id="brew"></div>
+  </body>
+  <script>
+    let data = [];
+
+    function getBreweries() {
+      let state = document.getElementById("state").value;
+      console.log(state);
+      fetch(
+        `https://api.openbrewerydb.org/breweries?per_page=50&by_state=${state}`
+      )
+        .then((resp) => resp.json())
+        .then((resp) => data.push(...resp))
+        // .then(console.log(data))
+        // .then((newData = []))
+        .then(() => displayData(data));
+      // spread operator is used to push all the data to the array
+      // instead of pushing the data array to index 0
+    }
+    // getBreweries();
+    // console.log(data);
+
+    function filterByCity() {
+      let city = document.getElementById("city").value;
+      const filterer = (el) =>
+        R.includes(city.toLowerCase(), el.city.toLowerCase());
+      const cityResult = R.filter(filterer, data);
+      console.log(cityResult);
+
+      displayData(cityResult);
+    }
+
+    function displayData(newData) {
+      document.getElementById("brew").innerHTML = "";
+      const mapper = (el) => {
+        document.getElementById("brew").innerHTML += `
+                <div class="card">
+                    <div>${el.name}</div>
+                    <div>${el.city}</div>
+                    <div>${el.brewery_type}</div>
+                    <div>${el.phone}</div>
+                    <div>${el.street}</div>
+                    <div>${el.website_url}</div>
+
+
+
+                </div>
+
+            `;
+      };
+      R.map(mapper, newData);
+    }
+
+    function filterByBrewType() {
+      let brewType = document.getElementById("brewType").value;
+      const filterer = (el) =>
+        el.brewery_type.toLowerCase() == brewType.toLowerCase();
+      const brewTypeResult = R.filter(filterer, data);
+      //   console.log(brewTypeResult);
+      displayData(brewTypeResult);
+    }
+
+    function filterBoth() {
+      let city = document.getElementById("city").value;
+      let brewType = document.getElementById("brewType").value;
+      const cityFilterer = (el) =>
+        R.includes(city.toLowerCase(), el.city.toLowerCase());
+      const typeFilterer = (el) =>
+        el.brewery_type.toLowerCase() == brewType.toLowerCase();
+      const composedResult = R.compose(
+        R.filter(cityFilterer),
+        R.filter(typeFilterer)
+      )(data);
+      displayData(composedResult);
+    }
+
+    // console.log(data);
+
+    // console.log(R.includes("ba", "banana"));
+  </script>
+</html>
