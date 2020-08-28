@@ -1,2 +1,2 @@
 # apiPractice
-basketball stats api / map, filter, reduce practice
+brewery api / map, filter, reduce practice
